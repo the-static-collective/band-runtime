@@ -18,6 +18,10 @@ export class BandRuntime {
     return cloneState(reduceProjection(events));
   }
 
+  /**
+   * Retrieves a projection at a specific historical event cut.
+   * (Historically referred to as a causal cut, but here strictly meaning an event ID bound).
+   */
   getProjectionAt(eventId: string): ProjectionState {
     const events = this.store.getUpTo(eventId);
     return cloneState(reduceProjection(events));

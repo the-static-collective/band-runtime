@@ -8,24 +8,24 @@ describe('Band Runtime First Vertical Slice', () => {
     const runtime = new BandRuntime();
     const sessionId = 'encounter-1';
 
-    runtime.dispatch({ id: 'e1', type: 'session.opened', timestamp: 1, payload: { sessionId } });
+    runtime.dispatch({ id: 'e1', type: 'session.opened', timestamp: 1, sessionId, payload: { sessionId } });
 
     // Admit participants
-    runtime.dispatch({ id: 'e2', type: 'participant.joined', timestamp: 2, payload: { participantId: 'human-1', role: 'Formation Trace' } });
-    runtime.dispatch({ id: 'e3', type: 'participant.joined', timestamp: 3, payload: { participantId: 'agent-1', role: 'Agent' } });
-    runtime.dispatch({ id: 'e4', type: 'participant.joined', timestamp: 4, payload: { participantId: 'corpus-1', role: 'Corpus' } });
+    runtime.dispatch({ id: 'e2', type: 'participant.joined', timestamp: 2, sessionId, payload: { participantId: 'human-1', role: 'Formation Trace' } });
+    runtime.dispatch({ id: 'e3', type: 'participant.joined', timestamp: 3, sessionId, payload: { participantId: 'agent-1', role: 'Agent' } });
+    runtime.dispatch({ id: 'e4', type: 'participant.joined', timestamp: 4, sessionId, payload: { participantId: 'corpus-1', role: 'Corpus' } });
 
     // Deposit separable proposal clips
-    runtime.dispatch({ id: 'e5', type: 'clip.proposed', timestamp: 5, payload: { participantId: 'human-1', clipId: 'clip-1', mediaType: 'text', content: 'hello' } });
-    runtime.dispatch({ id: 'e6', type: 'clip.proposed', timestamp: 6, payload: { participantId: 'agent-1', clipId: 'clip-2', mediaType: 'audio', content: 'wav-data' } });
+    runtime.dispatch({ id: 'e5', type: 'clip.proposed', timestamp: 5, sessionId, payload: { participantId: 'human-1', clipId: 'clip-1', mediaType: 'text', content: 'hello' } });
+    runtime.dispatch({ id: 'e6', type: 'clip.proposed', timestamp: 6, sessionId, payload: { participantId: 'agent-1', clipId: 'clip-2', mediaType: 'audio', content: 'wav-data' } });
 
     // Admit clips (simulate recognition law logic)
-    runtime.dispatch({ id: 'e7', type: 'clip.admitted', timestamp: 7, payload: { clipId: 'clip-1' } });
-    runtime.dispatch({ id: 'e8', type: 'clip.admitted', timestamp: 8, payload: { clipId: 'clip-2' } });
+    runtime.dispatch({ id: 'e7', type: 'clip.admitted', timestamp: 7, sessionId, payload: { clipId: 'clip-1' } });
+    runtime.dispatch({ id: 'e8', type: 'clip.admitted', timestamp: 8, sessionId, payload: { clipId: 'clip-2' } });
 
     // Record recognition outcomes
-    runtime.dispatch({ id: 'e9', type: 'recognition.recorded', timestamp: 9, payload: { participantId: 'agent-1', targetId: 'clip-1', outcome: 'rings' } });
-    runtime.dispatch({ id: 'e10', type: 'recognition.recorded', timestamp: 10, payload: { participantId: 'corpus-1', targetId: 'clip-1', outcome: 'nearby' } });
+    runtime.dispatch({ id: 'e9', type: 'recognition.recorded', timestamp: 9, sessionId, payload: { participantId: 'agent-1', targetId: 'clip-1', outcome: 'rings' } });
+    runtime.dispatch({ id: 'e10', type: 'recognition.recorded', timestamp: 10, sessionId, payload: { participantId: 'corpus-1', targetId: 'clip-1', outcome: 'nearby' } });
 
     const originalProjection = runtime.getProjection();
     const originalStoreSize = runtime.getStore().getAll().length;
@@ -61,8 +61,8 @@ describe('Band Runtime First Vertical Slice', () => {
 
     // 5. Demonstrate later influence is attributable without altering earlier replay
     // Record more events after restoration
-    restoredRuntime.dispatch({ id: 'e11', type: 'recognition.recorded', timestamp: 11, payload: { participantId: 'human-1', targetId: 'clip-2', outcome: 'projection' } });
-    restoredRuntime.dispatch({ id: 'e12', type: 'clip.rejected', timestamp: 12, payload: { clipId: 'clip-2', reason: 'Contested' } });
+    restoredRuntime.dispatch({ id: 'e11', type: 'recognition.recorded', timestamp: 11, sessionId, payload: { participantId: 'human-1', targetId: 'clip-2', outcome: 'projection' } });
+    restoredRuntime.dispatch({ id: 'e12', type: 'clip.rejected', timestamp: 12, sessionId, payload: { clipId: 'clip-2', reason: 'Contested' } });
 
     const finalProjection = restoredRuntime.getProjection();
     expect(finalProjection.recognitions.length).toBe(originalProjection.recognitions.length + 1);
@@ -85,7 +85,8 @@ describe('Band Runtime First Vertical Slice', () => {
     expect(agentStem[0].content).toBe('wav-data');
 
     // 6. Demonstrate duplicate delivery/retry is deterministic and idempotent
-    restoredRuntime.dispatch({ id: 'e12', type: 'clip.rejected', timestamp: 12, payload: { clipId: 'clip-2', reason: 'Contested' } }); // duplicate
+    // The previous test logic for duplicate had missing sessionId, fixing here to match the hardened spec
+    restoredRuntime.dispatch({ id: 'e12', type: 'clip.rejected', timestamp: 12, sessionId, payload: { clipId: 'clip-2', reason: 'Contested' } }); // duplicate
     const idempotentProjection = restoredRuntime.getProjection();
     expect(restoredRuntime.getStore().getAll().length).toBe(12); // e1 through e12
     expect(idempotentProjection.recognitions.length).toBe(finalProjection.recognitions.length);

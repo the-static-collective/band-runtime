@@ -100,14 +100,20 @@ export function reduceProjection(events: BandEvent[]): ProjectionState {
   return state;
 }
 
-// Deep clone for safe retrieval
+// Deep clone for safe retrieval to guarantee complete mutation isolation of nested objects
 export function cloneState(state: ProjectionState): ProjectionState {
+    const participants = new Map<string, Participant>();
+    state.participants.forEach((v, k) => participants.set(k, structuredClone(v)));
+
+    const clips = new Map<string, Clip>();
+    state.clips.forEach((v, k) => clips.set(k, structuredClone(v)));
+
     return {
         sessionId: state.sessionId,
-        participants: new Map(state.participants),
-        clips: new Map(state.clips),
-        recognitions: [...state.recognitions],
+        participants,
+        clips,
+        recognitions: structuredClone(state.recognitions),
         isClosed: state.isClosed,
-        policy: state.policy ? JSON.parse(JSON.stringify(state.policy)) : null
+        policy: state.policy ? structuredClone(state.policy) : null
     }
 }

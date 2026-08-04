@@ -15,6 +15,10 @@ export interface BaseEvent {
   id: string;
   type: EventType;
   timestamp: number;
+  /** Minimum thread/session binding required to prevent cross-session contamination. */
+  sessionId: string;
+  /** Deterministic append position assigned by the store. Not required on input, assigned on admission. */
+  sequence?: number;
 }
 
 export interface SessionOpenedEvent extends BaseEvent {
@@ -37,6 +41,11 @@ export interface ClipAdmittedEvent extends BaseEvent {
   payload: { clipId: string };
 }
 
+/**
+ * Note: clip.rejected is a deterministic clip lifecycle decision.
+ * It is distinctly different from recognition.recorded, which is a subjective recognition receipt.
+ * Do not conflate lifecycle bounds with subjective recognition just because both influence derived state.
+ */
 export interface ClipRejectedEvent extends BaseEvent {
   type: 'clip.rejected';
   payload: { clipId: string; reason?: string };
@@ -44,6 +53,10 @@ export interface ClipRejectedEvent extends BaseEvent {
 
 export type RecognitionOutcome = 'rings' | 'nearby' | 'projection' | 'no';
 
+/**
+ * Note: recognition.recorded is a subjective receipt/intervention.
+ * It does not rewrite historical events; it merely appends an influence for future deterministic projections.
+ */
 export interface RecognitionRecordedEvent extends BaseEvent {
   type: 'recognition.recorded';
   payload: { participantId: string; targetId: string; outcome: RecognitionOutcome };
