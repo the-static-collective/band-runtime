@@ -83,5 +83,11 @@ describe('Band Runtime First Vertical Slice', () => {
     expect(agentStem.length).toBe(1);
     expect(humanStem[0].content).toBe('hello');
     expect(agentStem[0].content).toBe('wav-data');
+
+    // 6. Demonstrate duplicate delivery/retry is deterministic and idempotent
+    restoredRuntime.dispatch({ id: 'e12', type: 'clip.rejected', timestamp: 12, payload: { clipId: 'clip-2', reason: 'Contested' } }); // duplicate
+    const idempotentProjection = restoredRuntime.getProjection();
+    expect(restoredRuntime.getStore().getAll().length).toBe(12); // e1 through e12
+    expect(idempotentProjection.recognitions.length).toBe(finalProjection.recognitions.length);
   });
 });

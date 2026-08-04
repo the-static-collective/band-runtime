@@ -8,7 +8,10 @@ export class EventStore {
   }
 
   append(event: BandEvent): void {
-    this.events.push(event);
+    const exists = this.events.some((e) => e.id === event.id);
+    if (!exists) {
+      this.events.push(event);
+    }
   }
 
   getAll(): BandEvent[] {
