@@ -16,7 +16,7 @@ It is a downstream implementation repository, not a replacement for:
 
 ## North star
 
-Make a multi-participant encounter possible *inside* the runtime: participants can inspect a bounded shared projection, contribute in their own media, recognize or refuse what occurs, and later replay exactly what was available at any declared causal cut.
+Make a multi-participant encounter possible _inside_ the runtime: participants can inspect a bounded shared projection, contribute in their own media, recognize or refuse what occurs, and later replay exactly what was available at any declared causal cut.
 
 ## What this is
 
@@ -52,13 +52,13 @@ The next bounded build is [the v0.1 first vertical slice](docs/first-vertical-sl
 
 ## Contract and implementation map
 
-| Concern | Owner | Band Runtime role |
-| --- | --- | --- |
-| Meaning-bearing relationships and recognition law | Project0 | Implement a downstream conformance profile |
-| Event continuity and addressability | TranchNode | Report compatible, lossy, or unavailable mappings honestly |
-| Corpus ingress and artifact workspace | Corpus OS | Consume/export declared artifact references only |
-| Shared time, channels, clips, projections, and mix receipts | Band Runtime | Own local runtime behavior |
-| Tool discovery and bounded participant access | MCP | Expose a narrow local instrument surface |
+| Concern                                                     | Owner        | Band Runtime role                                          |
+| ----------------------------------------------------------- | ------------ | ---------------------------------------------------------- |
+| Meaning-bearing relationships and recognition law           | Project0     | Implement a downstream conformance profile                 |
+| Event continuity and addressability                         | TranchNode   | Report compatible, lossy, or unavailable mappings honestly |
+| Corpus ingress and artifact workspace                       | Corpus OS    | Consume/export declared artifact references only           |
+| Shared time, channels, clips, projections, and mix receipts | Band Runtime | Own local runtime behavior                                 |
+| Tool discovery and bounded participant access               | MCP          | Expose a narrow local instrument surface                   |
 
 - [Architecture](docs/architecture.md)
 - [Project0 conformance profile](docs/project0-profile.md)
