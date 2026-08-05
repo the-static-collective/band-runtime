@@ -8,6 +8,8 @@ export type EventType =
   | 'anticipation.proposed'
   | 'anticipation.contested'
   | 'projection.policy_declared'
+  | 'protected_silence.declared'
+  | 'boundary.refusal_recorded'
   | 'mix.rendered'
   | 'session.closed';
 
@@ -42,9 +44,8 @@ export interface ClipAdmittedEvent extends BaseEvent {
 }
 
 /**
- * Note: clip.rejected is a deterministic clip lifecycle decision.
- * It is distinctly different from recognition.recorded, which is a subjective recognition receipt.
- * Do not conflate lifecycle bounds with subjective recognition just because both influence derived state.
+ * clip.rejected is a deterministic clip lifecycle decision. It is distinct from
+ * recognition.recorded, which is a subjective recognition receipt.
  */
 export interface ClipRejectedEvent extends BaseEvent {
   type: 'clip.rejected';
@@ -53,10 +54,6 @@ export interface ClipRejectedEvent extends BaseEvent {
 
 export type RecognitionOutcome = 'rings' | 'nearby' | 'projection' | 'no';
 
-/**
- * Note: recognition.recorded is a subjective receipt/intervention.
- * It does not rewrite historical events; it merely appends an influence for future deterministic projections.
- */
 export interface RecognitionRecordedEvent extends BaseEvent {
   type: 'recognition.recorded';
   payload: { participantId: string; targetId: string; outcome: RecognitionOutcome };
@@ -75,6 +72,50 @@ export interface AnticipationContestedEvent extends BaseEvent {
 export interface ProjectionPolicyDeclaredEvent extends BaseEvent {
   type: 'projection.policy_declared';
   payload: { policyId: string; rules: any };
+}
+
+export interface ProtectedSilenceDeclaredEvent extends BaseEvent {
+  type: 'protected_silence.declared';
+  payload: {
+    silenceId: string;
+    participantId: string;
+    artifactRef: string;
+    contentHash: string;
+    causalCutId: string;
+  };
+}
+
+export interface ProtectedArtifactProof {
+  artifactRef: string;
+  contentHashBefore: string;
+  contentHashAfter: string;
+}
+
+export interface BoundaryRefusalRecordedEvent extends BaseEvent {
+  type: 'boundary.refusal_recorded';
+  payload: {
+    attemptId: string;
+    actorId: string;
+    actorLocalSequence: number;
+    boundary: 'protected_silence';
+    reason: 'TARGET_PROTECTED_SILENCE';
+    causalCutId: string;
+    policyRef: string;
+    policyVersion: string;
+    policyInputHash: string;
+    evaluatorVersion: string;
+    attemptedEffect: 'artifact.write';
+    targetRefs: string[];
+    attemptedArtifact: {
+      artifactRef: string;
+      payloadHash: string;
+    };
+    protectedArtifacts: ProtectedArtifactProof[];
+    semanticEffect: 'none';
+    projectionClassification: 'refusal_only';
+    disclosureAudience: string[];
+    payloadVisibility: 'hash_only';
+  };
 }
 
 export interface MixRenderedEvent extends BaseEvent {
@@ -97,5 +138,7 @@ export type BandEvent =
   | AnticipationProposedEvent
   | AnticipationContestedEvent
   | ProjectionPolicyDeclaredEvent
+  | ProtectedSilenceDeclaredEvent
+  | BoundaryRefusalRecordedEvent
   | MixRenderedEvent
   | SessionClosedEvent;

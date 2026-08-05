@@ -1,15 +1,29 @@
 import { BandEvent } from './events';
 
+const VALID_EVENT_TYPES = new Set([
+  'session.opened',
+  'participant.joined',
+  'clip.proposed',
+  'clip.admitted',
+  'clip.rejected',
+  'recognition.recorded',
+  'anticipation.proposed',
+  'anticipation.contested',
+  'projection.policy_declared',
+  'protected_silence.declared',
+  'boundary.refusal_recorded',
+  'mix.rendered',
+  'session.closed',
+]);
+
 export class EventStore {
   private events: BandEvent[] = [];
 
   constructor(initialEvents: BandEvent[] = []) {
-    // We assume initialEvents are already validated and properly sequenced by deserialize
     this.events = [...initialEvents];
   }
 
   append(event: BandEvent): void {
-    // 1. Session binding validation
     if (this.events.length > 0) {
       const activeSessionId = this.events[0].sessionId;
       if (event.sessionId !== activeSessionId) {
@@ -17,30 +31,26 @@ export class EventStore {
       }
     }
 
-    // 2. Strict ID conflict vs idempotent no-op (checked before lifecycle so terminal event retries are handled cleanly)
-    const existing = this.events.find((e) => e.id === event.id);
+    const existing = this.events.find((candidate) => candidate.id === event.id);
     if (existing) {
-      // Check if it's a byte-identical retry (omitting sequence which might not be on the input)
-      const { sequence: seq1, ...eventWithoutSeq } = event;
-      const { sequence: seq2, ...existingWithoutSeq } = existing;
+      const { sequence: ignoredInputSequence, ...eventWithoutSequence } = event;
+      const { sequence: ignoredStoredSequence, ...existingWithoutSequence } = existing;
+      void ignoredInputSequence;
+      void ignoredStoredSequence;
 
-      if (JSON.stringify(eventWithoutSeq) === JSON.stringify(existingWithoutSeq)) {
-        return; // Idempotent no-op
-      } else {
-        throw new Error('EVENT_ID_CONFLICT');
+      if (JSON.stringify(eventWithoutSequence) === JSON.stringify(existingWithoutSequence)) {
+        return;
       }
+      throw new Error('EVENT_ID_CONFLICT');
     }
 
-    // 3. Lifecycle bounds
     if (this.events.length === 0 && event.type !== 'session.opened') {
       throw new Error('EVENT_BEFORE_SESSION_OPENED');
     }
-    const hasClosed = this.events.some(e => e.type === 'session.closed');
-    if (hasClosed) {
+    if (this.events.some((candidate) => candidate.type === 'session.closed')) {
       throw new Error('EVENT_AFTER_SESSION_CLOSED');
     }
 
-    // 4. Sequence assignment
     const sequence = this.events.length;
     this.events.push({ ...event, sequence });
   }
@@ -50,10 +60,8 @@ export class EventStore {
   }
 
   getUpTo(eventId: string): BandEvent[] {
-    const index = this.events.findIndex((e) => e.id === eventId);
-    if (index === -1) {
-      return this.getAll();
-    }
+    const index = this.events.findIndex((event) => event.id === eventId);
+    if (index === -1) return this.getAll();
     return this.events.slice(0, index + 1);
   }
 
@@ -61,70 +69,69 @@ export class EventStore {
     return JSON.stringify(this.events);
   }
 
+  serializeUpTo(eventId: string): string {
+    return JSON.stringify(this.getUpTo(eventId));
+  }
+
   static deserialize(data: string): EventStore {
-    let parsed: any;
+    let parsed: unknown;
     try {
       parsed = JSON.parse(data);
-    } catch (e) {
+    } catch {
       throw new Error('MALFORMED_JSON');
     }
 
-    if (!Array.isArray(parsed)) {
-      throw new Error('MALFORMED_JSON');
-    }
+    if (!Array.isArray(parsed)) throw new Error('MALFORMED_JSON');
 
     const events = parsed as BandEvent[];
-    const validTypes = new Set([
-      'session.opened', 'participant.joined', 'clip.proposed', 'clip.admitted',
-      'clip.rejected', 'recognition.recorded', 'anticipation.proposed',
-      'anticipation.contested', 'projection.policy_declared', 'mix.rendered', 'session.closed'
-    ]);
-
     const seenIds = new Set<string>();
     let activeSessionId: string | null = null;
 
-    for (let i = 0; i < events.length; i++) {
-      const e = events[i];
-
-      // Missing envelope fields
-      if (!e.id || !e.type || typeof e.timestamp !== 'number' || !e.sessionId) {
+    for (let index = 0; index < events.length; index++) {
+      const event = events[index];
+      if (!event.id || !event.type || typeof event.timestamp !== 'number' || !event.sessionId) {
         throw new Error('MISSING_ENVELOPE_FIELDS');
       }
+      if (!VALID_EVENT_TYPES.has(event.type)) throw new Error('UNKNOWN_EVENT_TYPE');
 
-      // Unknown event type
-      if (!validTypes.has(e.type)) {
-        throw new Error('UNKNOWN_EVENT_TYPE');
+      if (index === 0) {
+        if (event.type !== 'session.opened') throw new Error('EVENT_BEFORE_SESSION_OPENED');
+        activeSessionId = event.sessionId;
+      } else if (event.sessionId !== activeSessionId) {
+        throw new Error('CROSS_SESSION_CONTAMINATION');
       }
 
-      // Cross-session contamination in history
-      if (i === 0) {
-        if (e.type !== 'session.opened') throw new Error('EVENT_BEFORE_SESSION_OPENED');
-        activeSessionId = e.sessionId;
-      } else {
-        if (e.sessionId !== activeSessionId) throw new Error('CROSS_SESSION_CONTAMINATION');
-      }
+      if (seenIds.has(event.id)) throw new Error('EVENT_ID_CONFLICT');
+      seenIds.add(event.id);
 
-      // Conflicting duplicate IDs in history
-      if (seenIds.has(e.id)) {
-        throw new Error('EVENT_ID_CONFLICT');
+      if (event.type === 'boundary.refusal_recorded') {
+        if (
+          event.payload.semanticEffect !== 'none' ||
+          event.payload.projectionClassification !== 'refusal_only' ||
+          event.payload.payloadVisibility !== 'hash_only' ||
+          event.payload.protectedArtifacts.some(
+            (proof) => proof.contentHashBefore !== proof.contentHashAfter,
+          )
+        ) {
+          throw new Error('INVALID_REFUSAL_RECEIPT');
+        }
       }
-      seenIds.add(e.id);
     }
 
-    // Validation pass 2: Events after closure
-    const closedIndex = events.findIndex(e => e.type === 'session.closed');
+    const closedIndex = events.findIndex((event) => event.type === 'session.closed');
     if (closedIndex !== -1 && closedIndex < events.length - 1) {
-       throw new Error('EVENT_AFTER_SESSION_CLOSED');
+      throw new Error('EVENT_AFTER_SESSION_CLOSED');
     }
 
-    // Validation pass 3: Invalid references (basic check for clip existence on admit/reject)
-    const proposedClips = new Set(events.filter(e => e.type === 'clip.proposed').map(e => (e.payload as any).clipId));
-    for (const e of events) {
-       if (e.type === 'clip.admitted' || e.type === 'clip.rejected') {
-          if (!proposedClips.has((e.payload as any).clipId)) {
-             throw new Error('INVALID_REFERENCE');
-          }
-       }
+    const proposedClips = new Set(
+      events
+        .filter((event) => event.type === 'clip.proposed')
+        .map((event) => event.payload.clipId),
+    );
+    for (const event of events) {
+      if (event.type === 'clip.admitted' || event.type === 'clip.rejected') {
+        if (!proposedClips.has(event.payload.clipId)) throw new Error('INVALID_REFERENCE');
+      }
     }
 
     return new EventStore(events);
