@@ -1,0 +1,23 @@
+[
+  {
+    "id": "e1",
+    "type": "clip.proposed",
+    "timestamp": 1,
+    "sessionId": "s1",
+    "payload": {
+      "participantId": "p1",
+      "clipId": "c1",
+      "mediaType": "text",
+      "content": "hello"
+    }
+  },
+  {
+    "id": "e2",
+    "type": "session.opened",
+    "timestamp": 2,
+    "sessionId": "s1",
+    "payload": {
+      "sessionId": "s1"
+    }
+  }
+]

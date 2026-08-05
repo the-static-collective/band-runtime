@@ -1,0 +1,20 @@
+[
+  {
+    "id": "e1",
+    "type": "session.opened",
+    "timestamp": 1,
+    "sessionId": "s1",
+    "payload": {
+      "sessionId": "s1"
+    }
+  },
+  {
+    "id": "e2",
+    "type": "clip.admitted",
+    "timestamp": 2,
+    "sessionId": "s1",
+    "payload": {
+      "clipId": "c1"
+    }
+  }
+]

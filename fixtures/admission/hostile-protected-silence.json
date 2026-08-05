@@ -1,0 +1,76 @@
+{
+  "policy": {
+    "ref": "policy:room-sovereignty",
+    "version": "0.1.0",
+    "inputHash": "sha256:policy-input-v1",
+    "evaluatorVersion": "admission-kernel/0.1.0",
+    "refusalAudience": ["participant-owner", "room-auditor"]
+  },
+  "events": [
+    {
+      "id": "e1",
+      "type": "session.opened",
+      "timestamp": 1,
+      "sessionId": "hostile-write-session",
+      "payload": { "sessionId": "hostile-write-session" }
+    },
+    {
+      "id": "e2",
+      "type": "participant.joined",
+      "timestamp": 2,
+      "sessionId": "hostile-write-session",
+      "payload": { "participantId": "participant-owner", "role": "Formation Trace" }
+    },
+    {
+      "id": "e3",
+      "type": "participant.joined",
+      "timestamp": 3,
+      "sessionId": "hostile-write-session",
+      "payload": { "participantId": "participant-attacker", "role": "Temporary Agent" }
+    },
+    {
+      "id": "e4",
+      "type": "clip.proposed",
+      "timestamp": 4,
+      "sessionId": "hostile-write-session",
+      "payload": {
+        "participantId": "participant-owner",
+        "clipId": "protected-clip",
+        "mediaType": "text",
+        "content": "owner testimony"
+      }
+    },
+    {
+      "id": "e5",
+      "type": "clip.admitted",
+      "timestamp": 5,
+      "sessionId": "hostile-write-session",
+      "payload": { "clipId": "protected-clip" }
+    },
+    {
+      "id": "e6",
+      "type": "protected_silence.declared",
+      "timestamp": 6,
+      "sessionId": "hostile-write-session",
+      "payload": {
+        "silenceId": "silence-owner-1",
+        "participantId": "participant-owner",
+        "artifactRef": "protected-clip",
+        "contentHash": "sha256:protected-clip-v1",
+        "causalCutId": "e5"
+      }
+    }
+  ],
+  "attempt": {
+    "id": "attempt-hostile-1",
+    "timestamp": 7,
+    "sessionId": "hostile-write-session",
+    "actorId": "participant-attacker",
+    "actorLocalSequence": 1,
+    "causalCutId": "e6",
+    "targetArtifactRef": "protected-clip",
+    "attemptedEffect": "artifact.write",
+    "payloadHash": "sha256:coercive-payload-v1",
+    "payload": "COERCIVE PAYLOAD MUST NEVER ENTER SEMANTIC PROJECTION"
+  }
+}
