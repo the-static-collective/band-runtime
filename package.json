@@ -1,5 +1,5 @@
 {
-  "name": "app",
+  "name": "band-runtime",
   "version": "1.0.0",
   "description": "> The DAW is the room.   > MCP is the instrument cable.   > The shared event field is the nervous system.   > The band is the runtime.",
   "main": "index.js",
@@ -7,7 +7,9 @@
     "doc": "docs"
   },
   "scripts": {
-    "test": "vitest run"
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "mcp:stdio": "ts-node src/mcp/stdio.ts"
   },
   "repository": {
     "type": "git",
@@ -20,6 +22,10 @@
     "url": "https://github.com/the-static-collective/band-runtime/issues"
   },
   "homepage": "https://github.com/the-static-collective/band-runtime#readme",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.17.3",
+    "zod": "^3.25.76"
+  },
   "devDependencies": {
     "@types/node": "^20.19.43",
     "ts-node": "^10.9.2",
