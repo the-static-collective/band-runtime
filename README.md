@@ -23,7 +23,7 @@ Make a multi-participant encounter possible *inside* the runtime: participants c
 - a shared session/runtime layer;
 - append-only event history plus deterministic, rebuildable projections;
 - sovereign participant channels, recoverable stems, and bounded disclosure;
-- a future browser room, local event service, and narrow MCP surface;
+- a browser-room kernel boundary plus narrow MCP surface;
 - an audible and inspectable receipt of collaboration.
 
 ## What this is not
@@ -46,9 +46,13 @@ Make a multi-participant encounter possible *inside* the runtime: participants c
 
 ## Current state
 
-**Repository initialized. Runtime implementation has not begun.**
+**The first runtime kernel is implemented and under active conformance work.**
 
-The next bounded build is [the v0.1 first vertical slice](docs/first-vertical-slice.md). It is specified before code so the kernel cannot drift into a generic multiplayer chat or a hidden authority system.
+Current `main` includes the append-only event/store/projection path, idempotent replay, participant and clip encounter events, protected-silence admission/refusal proof, and the bounded `evaluate_artifact_write_admission` MCP tool. The canonical proof surface is the repository test suite plus the MCP admission behavior; the runtime no longer belongs in an “implementation has not begun” state.
+
+**Groove Rooms embodies this runtime; it does not replace it.** Groove Rooms owns the inhabitable room experience—rooms/invites, playback, media UX, participant presence, and branch navigation. Band Runtime owns the encounter/admission/refusal/projection law those surfaces execute against. Product-only playback, authentication, and room UX should stay in Groove Rooms; changes to shared event semantics, protected-silence admission, refusal residue, projection/replay, or MCP admission belong here.
+
+The original [v0.1 first vertical slice](docs/first-vertical-slice.md) is now historical grounding rather than the next task. The next bounded runtime proof is to keep the kernel and Groove Rooms embodiment mechanically aligned: one committed event sequence should yield the same admission/refusal and projection semantics at the runtime boundary and in the inhabitable room, without moving product concerns into this repository.
 
 ## Contract and implementation map
 
@@ -57,13 +61,15 @@ The next bounded build is [the v0.1 first vertical slice](docs/first-vertical-sl
 | Meaning-bearing relationships and recognition law | Project0 | Implement a downstream conformance profile |
 | Event continuity and addressability | TranchNode | Report compatible, lossy, or unavailable mappings honestly |
 | Corpus ingress and artifact workspace | Corpus OS | Consume/export declared artifact references only |
-| Shared time, channels, clips, projections, and mix receipts | Band Runtime | Own local runtime behavior |
+| Encounter, admission, refusal, projection, replay, and runtime MCP law | Band Runtime | Own local runtime behavior and conformance |
+| Rooms, invitations, playback, media UX, participant presence, branch navigation | Groove Rooms | Embody Band Runtime without becoming authority over runtime law |
 | Tool discovery and bounded participant access | MCP | Expose a narrow local instrument surface |
 
 - [Architecture](docs/architecture.md)
 - [Project0 conformance profile](docs/project0-profile.md)
 - [v0.1 first vertical slice](docs/first-vertical-slice.md)
 - [Decision record 0001: repository boundary](docs/adr/0001-runtime-boundary.md)
+- [Groove Rooms](https://github.com/the-static-collective/groove-rooms)
 
 ## Status vocabulary
 
