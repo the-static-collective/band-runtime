@@ -83,8 +83,9 @@ export function adaptCommittedEventsToStigmergicField(
   const ringsWitnessesByTarget = new Map<string, Set<string>>();
   const ringsPairs = new Set<string>();
 
-  for (const event of events) {
+  for (const [index, event] of events.entries()) {
     if (event.sessionId !== scopeId) throw new Error('CROSS_SESSION_CONTAMINATION');
+    if (runtimeSequence(event) !== index) throw new Error('UNCOMMITTED_EVENT');
 
     const sequence = fieldSequence(event);
     sourceEvents.push({ eventId: event.id, scopeId, sequence });
