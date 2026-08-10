@@ -213,6 +213,14 @@ describe('stigmergic adapter', () => {
     expect(() => adaptCommittedEventsToStigmergicField([sessionOpened()])).toThrow('UNCOMMITTED_EVENT');
   });
 
+  it('rejects a forged non-contiguous runtime sequence', () => {
+    const committed = linkedVerticalStore().getAll().slice(0, 2);
+    const forged = committed.map((event, index) => (
+      index === 1 ? { ...event, sequence: 99 } as BandEvent : event
+    ));
+    expect(() => adaptCommittedEventsToStigmergicField(forged)).toThrow('UNCOMMITTED_EVENT');
+  });
+
   it('matches the frozen TranchNode source envelopes and trace bodies exactly', () => {
     const fixture = loadFixture();
     const adapted = adaptCommittedEventsToStigmergicField(linkedVerticalStore().getAll());
