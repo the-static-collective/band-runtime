@@ -14,7 +14,164 @@ const VALID_EVENT_TYPES = new Set([
   'boundary.refusal_recorded',
   'mix.rendered',
   'session.closed',
+  'capture.recorded',
+  'handoff.recorded',
+  'return.recorded',
+  'decision.recorded',
 ]);
+
+const WITNESS_EVENT_TYPES = new Set([
+  'capture.recorded',
+  'handoff.recorded',
+  'return.recorded',
+  'decision.recorded',
+]);
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === 'string' && value.length > 0;
+}
+
+function isNullableString(value: unknown): value is string | null {
+  return value === null || typeof value === 'string';
+}
+
+function isStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every((item) => typeof item === 'string');
+}
+
+function isWitnessMaterial(value: unknown): boolean {
+  if (!isRecord(value) || typeof value.kind !== 'string') return false;
+
+  if (value.kind === 'text') {
+    return typeof value.text === 'string' && isNonEmptyString(value.sha256);
+  }
+
+  if (value.kind === 'url') {
+    return (
+      isNonEmptyString(value.url) &&
+      (value.sha256 === undefined || typeof value.sha256 === 'string')
+    );
+  }
+
+  if (value.kind === 'voice' || value.kind === 'file' || value.kind === 'screenshot') {
+    return (
+      isNonEmptyString(value.artifactRef) &&
+      isNonEmptyString(value.sha256) &&
+      (value.mimeType === undefined || typeof value.mimeType === 'string') &&
+      (value.filename === undefined || typeof value.filename === 'string')
+    );
+  }
+
+  return false;
+}
+
+function isOutboundSnapshot(value: unknown): boolean {
+  if (!isRecord(value)) return false;
+  if (
+    value.completeness !== 'EXACT' &&
+    value.completeness !== 'PARTIAL' &&
+    value.completeness !== 'UNKNOWN'
+  ) {
+    return false;
+  }
+  if (value.text !== undefined && typeof value.text !== 'string') return false;
+  if (value.artifactRef !== undefined && typeof value.artifactRef !== 'string') return false;
+  if (value.sha256 !== undefined && typeof value.sha256 !== 'string') return false;
+  if (value.metadata !== undefined && !isRecord(value.metadata)) return false;
+
+  if (value.completeness === 'EXACT') {
+    return [value.text, value.artifactRef, value.sha256].some((candidate) =>
+      isNonEmptyString(candidate),
+    );
+  }
+
+  return true;
+}
+
+function isDeliveryEvidence(value: unknown): boolean {
+  if (!isRecord(value)) return false;
+  if (!['DECLARED', 'WITNESSED', 'FAILED', 'UNKNOWN'].includes(String(value.status))) {
+    return false;
+  }
+  if (!isStringArray(value.evidence)) return false;
+  return value.reason === undefined || typeof value.reason === 'string';
+}
+
+function isObservedReturn(value: unknown): boolean {
+  if (!isRecord(value)) return false;
+  if (value.text !== undefined && typeof value.text !== 'string') return false;
+  if (value.artifactRef !== undefined && typeof value.artifactRef !== 'string') return false;
+  return value.metadata === undefined || isRecord(value.metadata);
+}
+
+function isReturnRelation(value: unknown): boolean {
+  if (!isRecord(value) || !isStringArray(value.evidence) || typeof value.status !== 'string') {
+    return false;
+  }
+  if (value.reason !== undefined && typeof value.reason !== 'string') return false;
+
+  switch (value.status) {
+    case 'WITNESSED':
+    case 'CLAIMED':
+    case 'PARTIAL':
+      return isNonEmptyString(value.handoffId);
+    case 'UNRESOLVED':
+      return value.handoffId === null;
+    case 'REFUTED':
+      return (
+        isNonEmptyString(value.handoffId) &&
+        isNonEmptyString(value.refutesReturnId) &&
+        isNonEmptyString(value.reason)
+      );
+    default:
+      return false;
+  }
+}
+
+function isWitnessPayloadFor(event: { type: string; payload?: unknown }): boolean {
+  if (!isRecord(event.payload)) return false;
+  const payload = event.payload;
+
+  switch (event.type) {
+    case 'capture.recorded':
+      return (
+        isNonEmptyString(payload.actorId) &&
+        isWitnessMaterial(payload.material) &&
+        isNullableString(payload.intent) &&
+        isNullableString(payload.localObservedAt) &&
+        isNullableString(payload.parentCaptureId)
+      );
+    case 'handoff.recorded':
+      return (
+        isNonEmptyString(payload.actorId) &&
+        isStringArray(payload.sourceCaptureIds) &&
+        isNonEmptyString(payload.destination) &&
+        isOutboundSnapshot(payload.outbound) &&
+        isDeliveryEvidence(payload.delivery)
+      );
+    case 'return.recorded':
+      return (
+        isNonEmptyString(payload.actorId) &&
+        isNonEmptyString(payload.provider) &&
+        isNullableString(payload.providerArtifactId) &&
+        isObservedReturn(payload.observed) &&
+        isReturnRelation(payload.relation)
+      );
+    case 'decision.recorded':
+      return (
+        isNonEmptyString(payload.actorId) &&
+        isNonEmptyString(payload.returnId) &&
+        ['KEEP', 'REFUSE', 'WRONG', 'INTERESTING'].includes(String(payload.decision)) &&
+        isNullableString(payload.note)
+      );
+    default:
+      return false;
+  }
+}
 
 export class EventStore {
   private events: BandEvent[] = [];
@@ -93,6 +250,9 @@ export class EventStore {
         throw new Error('MISSING_ENVELOPE_FIELDS');
       }
       if (!VALID_EVENT_TYPES.has(event.type)) throw new Error('UNKNOWN_EVENT_TYPE');
+      if (WITNESS_EVENT_TYPES.has(event.type) && !isWitnessPayloadFor(event)) {
+        throw new Error('INVALID_WITNESS_RECEIPT');
+      }
 
       if (index === 0) {
         if (event.type !== 'session.opened') throw new Error('EVENT_BEFORE_SESSION_OPENED');
