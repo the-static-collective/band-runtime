@@ -71,7 +71,7 @@ export function createEmptyState(): ProjectionState {
   };
 }
 
-/** General semantic projection. Refusal receipts are intentionally non-participating. */
+/** General semantic projection. Refusal and witness receipts are intentionally non-participating. */
 export function reduceProjection(events: readonly BandEvent[]): ProjectionState {
   const state = createEmptyState();
 
@@ -123,6 +123,10 @@ export function reduceProjection(events: readonly BandEvent[]): ProjectionState 
       case 'anticipation.proposed':
       case 'anticipation.contested':
       case 'mix.rendered':
+      case 'capture.recorded':
+      case 'handoff.recorded':
+      case 'return.recorded':
+      case 'decision.recorded':
         break;
     }
   }
@@ -158,8 +162,8 @@ export function reduceRefusalProjection(
 }
 
 /**
- * Inputs eligible for retrieval, indexing, relevance, or inference. Refusal and
- * protected-silence events have no code path into this list.
+ * Inputs eligible for retrieval, indexing, relevance, or inference. Refusal,
+ * protected-silence, and CAPTURE-001 witness events have no code path into this list.
  */
 export function buildSemanticInputs(events: readonly BandEvent[]): SemanticInput[] {
   const state = reduceProjection(events);
