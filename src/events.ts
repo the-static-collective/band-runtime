@@ -11,7 +11,11 @@ export type EventType =
   | 'protected_silence.declared'
   | 'boundary.refusal_recorded'
   | 'mix.rendered'
-  | 'session.closed';
+  | 'session.closed'
+  | 'capture.recorded'
+  | 'handoff.recorded'
+  | 'return.recorded'
+  | 'decision.recorded';
 
 export interface BaseEvent {
   id: string;
@@ -128,6 +132,102 @@ export interface SessionClosedEvent extends BaseEvent {
   payload: { sessionId: string };
 }
 
+export type CaptureMaterialKind = 'text' | 'voice' | 'file' | 'screenshot' | 'url';
+export type PayloadCompleteness = 'EXACT' | 'PARTIAL' | 'UNKNOWN';
+export type DeliveryStatus = 'DECLARED' | 'WITNESSED' | 'FAILED' | 'UNKNOWN';
+export type ReturnRelationStatus = 'WITNESSED' | 'CLAIMED' | 'PARTIAL' | 'UNRESOLVED' | 'REFUTED';
+export type DecisionValue = 'KEEP' | 'REFUSE' | 'WRONG' | 'INTERESTING';
+
+export type WitnessMaterial =
+  | { kind: 'text'; text: string; sha256: string }
+  | { kind: 'url'; url: string; sha256?: string }
+  | {
+      kind: 'voice' | 'file' | 'screenshot';
+      artifactRef: string;
+      sha256: string;
+      mimeType?: string;
+      filename?: string;
+    };
+
+export type OutboundSnapshot = {
+  completeness: PayloadCompleteness;
+  text?: string;
+  artifactRef?: string;
+  sha256?: string;
+  metadata?: Record<string, unknown>;
+};
+
+export type DeliveryEvidence = {
+  status: DeliveryStatus;
+  evidence: string[];
+  reason?: string;
+};
+
+export type ObservedReturn = {
+  text?: string;
+  artifactRef?: string;
+  metadata?: Record<string, unknown>;
+};
+
+export type ReturnRelation =
+  | {
+      handoffId: string;
+      status: 'WITNESSED' | 'CLAIMED' | 'PARTIAL';
+      evidence: string[];
+      reason?: string;
+    }
+  | { handoffId: null; status: 'UNRESOLVED'; evidence: string[]; reason?: string }
+  | {
+      handoffId: string;
+      status: 'REFUTED';
+      evidence: string[];
+      refutesReturnId: string;
+      reason: string;
+    };
+
+export interface CaptureRecordedEvent extends BaseEvent {
+  type: 'capture.recorded';
+  payload: {
+    actorId: string;
+    material: WitnessMaterial;
+    intent: string | null;
+    localObservedAt: string | null;
+    parentCaptureId: string | null;
+  };
+}
+
+export interface HandoffRecordedEvent extends BaseEvent {
+  type: 'handoff.recorded';
+  payload: {
+    actorId: string;
+    sourceCaptureIds: string[];
+    destination: string;
+    outbound: OutboundSnapshot;
+    delivery: DeliveryEvidence;
+  };
+}
+
+export interface ReturnRecordedEvent extends BaseEvent {
+  type: 'return.recorded';
+  payload: {
+    actorId: string;
+    provider: string;
+    providerArtifactId: string | null;
+    observed: ObservedReturn;
+    relation: ReturnRelation;
+  };
+}
+
+export interface DecisionRecordedEvent extends BaseEvent {
+  type: 'decision.recorded';
+  payload: {
+    actorId: string;
+    returnId: string;
+    decision: DecisionValue;
+    note: string | null;
+  };
+}
+
 export type BandEvent =
   | SessionOpenedEvent
   | ParticipantJoinedEvent
@@ -141,4 +241,8 @@ export type BandEvent =
   | ProtectedSilenceDeclaredEvent
   | BoundaryRefusalRecordedEvent
   | MixRenderedEvent
-  | SessionClosedEvent;
+  | SessionClosedEvent
+  | CaptureRecordedEvent
+  | HandoffRecordedEvent
+  | ReturnRecordedEvent
+  | DecisionRecordedEvent;
