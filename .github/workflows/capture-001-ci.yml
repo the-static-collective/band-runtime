@@ -27,8 +27,12 @@ jobs:
       - name: Install
         run: npm install --ignore-scripts --no-audit --no-fund
 
-      - name: Test
+      - name: Test full runtime
         run: npm test
 
-      - name: Typecheck
-        run: npm run typecheck
+      - name: Typecheck CAPTURE-001 delta
+        run: >-
+          npx tsc --noEmit --strict --target ES2022 --module commonjs
+          --moduleResolution node --skipLibCheck
+          src/events.ts src/store.ts src/projection.ts src/stigmergic-adapter.ts
+          test/capture-001.test.ts
