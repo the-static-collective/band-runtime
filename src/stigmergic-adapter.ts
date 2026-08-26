@@ -130,6 +130,10 @@ export function adaptCommittedEventsToStigmergicField(
       case 'boundary.refusal_recorded':
       case 'mix.rendered':
       case 'session.closed':
+      case 'capture.recorded':
+      case 'handoff.recorded':
+      case 'return.recorded':
+      case 'decision.recorded':
         break;
     }
   }

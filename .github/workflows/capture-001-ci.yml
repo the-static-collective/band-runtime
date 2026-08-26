@@ -1,0 +1,38 @@
+name: CAPTURE-001 CI
+
+on:
+  push:
+    branches:
+      - feat/capture-001-witness-spine
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install
+        run: npm install --ignore-scripts --no-audit --no-fund
+
+      - name: Test full runtime
+        run: npm test
+
+      - name: Typecheck CAPTURE-001 delta
+        run: >-
+          npx tsc --noEmit --strict --target ES2022 --module commonjs
+          --moduleResolution node --skipLibCheck
+          src/events.ts src/store.ts src/projection.ts src/stigmergic-adapter.ts
+          test/capture-001.test.ts
