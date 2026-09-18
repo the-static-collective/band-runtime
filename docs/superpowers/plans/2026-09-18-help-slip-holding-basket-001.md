@@ -840,7 +840,7 @@ Validation rules:
 - event ID non-empty and unique inside `priorEvents`;
 - source requirement exists in the first admitted receive for the case;
 - quantity, if supplied, is positive finite;
-- quantity-bearing source requirements require exact source unit on event;
+- a quantitative event must carry a non-empty unit; unit mismatch is admitted as witnessed history but has zero quantitative consequence and produces a projection warning;
 - recipient-authority event types require the literal authority basis;
 - `commitment.withdrawn` must reference a prior `commitment.recorded` event from the same case and requirement;
 - a commitment may be withdrawn at most once;
