@@ -43,6 +43,7 @@ Make a multi-participant encounter possible *inside* the runtime: participants c
 5. **Channels are sovereign.** Authorship, disclosure, refusal, and exportable stems survive every mix.
 6. **Foreignness and silence remain available.** The field must not become a sealed self-confirming loop.
 7. **Models propose; deterministic admission decides.**
+8. **Receive, hold, pour.** Server nodes are bounded in/out doors: receiving is not admission, holding is not ownership, and pouring is not receiver authorization.
 
 ## Current state
 
@@ -69,6 +70,7 @@ The original [v0.1 first vertical slice](docs/first-vertical-slice.md) is now hi
 - [Project0 conformance profile](docs/project0-profile.md)
 - [v0.1 first vertical slice](docs/first-vertical-slice.md)
 - [Decision record 0001: repository boundary](docs/adr/0001-runtime-boundary.md)
+- [Decision record 0002: RECEIVE → HOLD → POUR node boundary](docs/adr/0002-receive-hold-pour-node-boundary.md)
 - [Groove Rooms](https://github.com/the-static-collective/groove-rooms)
 
 ## Status vocabulary
