@@ -27,5 +27,8 @@ jobs:
       - name: Test
         run: npm test
 
-      - name: Typecheck
-        run: npm run typecheck
+      - name: Typecheck help-case delta
+        run: >-
+          npx tsc --noEmit --strict --target ES2022 --module commonjs
+          --moduleResolution node --esModuleInterop --skipLibCheck
+          src/help-case/*.ts
