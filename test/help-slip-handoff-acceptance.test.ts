@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync } from 'node:fs';
+import { appendFileSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -132,4 +132,35 @@ describe('HELP-SLIP-HOLDING-BASKET-001 acceptance', () => {
     expect(final.requirements[0].resolvedElsewhereQuantity).toBe(1);
     expect(final.requirements[0].reportedDeliveredQuantity).toBe(2);
   });
+});
+
+
+it('refuses syntactically valid ledger tampering on replay', () => {
+  const root = tempRoot();
+  const runtime = new HoldingBasketRuntime(root);
+  const received = runtime.receive(helpSlip, {
+    occurrenceId: 'receive-tamper',
+    receivedAt: '2026-09-18T16:00:00.000Z',
+    carrier: 'pasted_json',
+  });
+  if (!received.heldCase) throw new Error('expected held case');
+
+  appendFileSync(
+    join(root, 'events.jsonl'),
+    `${JSON.stringify({
+      eventId: 'forged-confirmation',
+      type: 'receipt.confirmed',
+      caseId: received.heldCase.caseId,
+      requirementId: 'ingredient:tomatoes',
+      occurredAt: '2026-09-18T16:01:00.000Z',
+      actorRef: 'unknown',
+      quantity: 2,
+      unit: 'can',
+    })}\n`,
+    'utf8',
+  );
+
+  const restored = new HoldingBasketRuntime(root);
+  expect(() => restored.getProjection(received.heldCase!.caseId))
+    .toThrow('RECIPIENT_AUTHORITY_BASIS_REQUIRED');
 });
