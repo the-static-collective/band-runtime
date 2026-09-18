@@ -43,6 +43,7 @@ Make a multi-participant encounter possible *inside* the runtime: participants c
 5. **Channels are sovereign.** Authorship, disclosure, refusal, and exportable stems survive every mix.
 6. **Foreignness and silence remain available.** The field must not become a sealed self-confirming loop.
 7. **Models propose; deterministic admission decides.**
+8. **Receive, hold, pour.** Server nodes are bounded in/out doors: receiving is not admission, holding is not ownership, and pouring is not receiver authorization.
 
 ## Current state
 
@@ -69,6 +70,7 @@ The original [v0.1 first vertical slice](docs/first-vertical-slice.md) is now hi
 - [Project0 conformance profile](docs/project0-profile.md)
 - [v0.1 first vertical slice](docs/first-vertical-slice.md)
 - [Decision record 0001: repository boundary](docs/adr/0001-runtime-boundary.md)
+- [Decision record 0002: RECEIVE → HOLD → POUR node boundary](docs/adr/0002-receive-hold-pour-node-boundary.md)
 - [Groove Rooms](https://github.com/the-static-collective/groove-rooms)
 
 ## Status vocabulary
@@ -76,6 +78,38 @@ The original [v0.1 first vertical slice](docs/first-vertical-slice.md) is now hi
 `exact` · `representable_with_payload` · `lossy` · `unavailable` · `requires_version_boundary`
 
 No integration may silently downgrade one of these states.
+
+
+## HELP-SLIP-HOLDING-BASKET-001
+
+Band Runtime contains an experimental receiver-side kernel for one bounded
+community-help crossing.
+
+A Nourish `fulfillment-envelope/v0` may be received as immutable foreign
+evidence, admitted into one local held case, surrounded by append-only
+fulfillment-history events, and replayed into an honest residual.
+
+The kernel keeps these distinctions explicit:
+
+```
+request != history
+offer != commitment
+commitment != attempt
+delivery reported != receipt confirmed
+waived != fulfilled
+resolved elsewhere != helper fulfilled
+```
+
+Duplicate payload imports remain separate receive occurrences but do not create
+duplicate demand by default.
+
+This kernel does not provide a browser community desk. NanaSpork/Garden is the
+preferred existing product embodiment because it already owns the human-facing
+Garden/Campfire need lifecycle. Any future adapter must explicitly map lifecycle
+semantics rather than collapsing states by similar names.
+
+The local specimen stores experimental runtime data under
+`.runtime/help-cases/`, which is intentionally gitignored.
 
 ## Provenance
 
