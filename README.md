@@ -79,6 +79,38 @@ The original [v0.1 first vertical slice](docs/first-vertical-slice.md) is now hi
 
 No integration may silently downgrade one of these states.
 
+
+## HELP-SLIP-HOLDING-BASKET-001
+
+Band Runtime contains an experimental receiver-side kernel for one bounded
+community-help crossing.
+
+A Nourish `fulfillment-envelope/v0` may be received as immutable foreign
+evidence, admitted into one local held case, surrounded by append-only
+fulfillment-history events, and replayed into an honest residual.
+
+The kernel keeps these distinctions explicit:
+
+```
+request != history
+offer != commitment
+commitment != attempt
+delivery reported != receipt confirmed
+waived != fulfilled
+resolved elsewhere != helper fulfilled
+```
+
+Duplicate payload imports remain separate receive occurrences but do not create
+duplicate demand by default.
+
+This kernel does not provide a browser community desk. NanaSpork/Garden is the
+preferred existing product embodiment because it already owns the human-facing
+Garden/Campfire need lifecycle. Any future adapter must explicitly map lifecycle
+semantics rather than collapsing states by similar names.
+
+The local specimen stores experimental runtime data under
+`.runtime/help-cases/`, which is intentionally gitignored.
+
 ## Provenance
 
 This repository implements the downstream slice defined by [Project0 issue #25](https://github.com/the-static-collective/project0/issues/25).
