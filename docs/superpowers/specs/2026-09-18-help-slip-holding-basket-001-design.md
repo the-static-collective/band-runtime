@@ -163,12 +163,13 @@ Conceptual record:
 
 ```ts
 interface ReceivedHelpSlip {
-  caseId: string;
+  caseId?: string;
   occurrenceId: string;
   receivedAt: string;
   carrier: "pasted_json";
-  payloadHash: string;
-  payload: ImportedFulfillmentEnvelopeV0;
+  carrierHash: string;
+  payloadHash?: string;
+  payload?: ImportedFulfillmentEnvelopeV0;
   admission:
     | "admitted"
     | "refused"
@@ -184,13 +185,30 @@ Later fulfillment history references `caseId` and requirement IDs. It never edit
 
 Duplicate detection is observational, not destructive.
 
+V0 keeps two distinct hashes:
+
+- `carrierHash`: SHA-256 of the exact UTF-8 text received at the in door;
+- `payloadHash`: SHA-256 of a deterministic schema-order JSON serialization of the validated payload.
+
+The schema-order serialization writes object fields in the order declared by the v0 import contract and preserves requirement-array order. It does not sort requirements, normalize units, rewrite numbers, or drop optional fields that were present.
+
+This lets the node distinguish:
+
+```text
+SAME MEANINGFUL V0 PAYLOAD + DIFFERENT WHITESPACE
+from
+EXACT SAME CARRIER BYTES
+```
+
 For each receive occurrence:
 
-1. canonicalize the admitted payload using one deterministic repository-local JSON canonicalization rule;
-2. compute `payloadHash`;
-3. compare with prior received slips;
-4. retain the new receive occurrence regardless of whether the hash was seen before;
-5. expose a duplicate relationship when applicable.
+1. hash the raw carrier text as `carrierHash`;
+2. parse and validate the v0 payload;
+3. serialize the validated payload using the repository-defined schema-order serializer;
+4. hash that serialization as `payloadHash`;
+5. compare `payloadHash` with prior admitted slips;
+6. retain the new receive occurrence regardless of whether either hash was seen before;
+7. expose duplicate relationships when applicable.
 
 ```text
 SAME PAYLOAD
@@ -237,6 +255,29 @@ HELD CASE != GLOBAL CASE
 
 ## 8. Append-Only Fulfillment Events
 
+### 8.0 Authority limitation
+
+V0 does not authenticate human identity.
+
+For events whose consequence depends on recipient/request-owner authority—`ReceiptConfirmed`, `RequirementResolvedElsewhere`, and `RequirementWaived`—the runtime records a declared local authority basis such as:
+
+```ts
+authorityBasis: "local_operator_declared_recipient_scope";
+```
+
+This means only:
+
+> the local operator invoked the recipient-authority event path.
+
+It does not prove that the operator is in fact the requester or recipient.
+
+```text
+DECLARED RECIPIENT SCOPE != VERIFIED IDENTITY
+EVENT CLASS != GLOBAL AUTHORITY
+```
+
+Identity/authentication is explicitly outside v0.
+
 V0 event kinds:
 
 ```ts
@@ -261,6 +302,7 @@ interface HelpCaseEventBase {
   requirementId: string;
   occurredAt: string;
   actorRef?: string;
+  authorityBasis?: "local_operator_declared_recipient_scope";
   quantity?: number;
   unit?: string;
   note?: string;
@@ -322,6 +364,8 @@ Reported delivery does not reduce confirmed residual.
 The recipient-side authority confirms a received quantity.
 
 Only confirmed receipt may reduce residual as fulfilled-by-help.
+
+V0 residual arithmetic does not assign helper credit from confirmation alone. Helper-specific attribution remains a separate interpretation of linked event history and is not used to decide whether the requirement is closed.
 
 ### 8.7 RequirementResolvedElsewhere
 
@@ -701,7 +745,7 @@ The minimum successful run:
 9. verify residual decreases by exactly one;
 10. terminate the process;
 11. reload from the append-only local ledger;
-12. verify the original payload hash is unchanged;
+12. verify the original carrier and payload hashes are unchanged;
 13. verify history reconstructs identically;
 14. verify the residual remains exactly one unit lower than the original;
 15. record the remaining amount as resolved elsewhere;
