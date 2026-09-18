@@ -96,15 +96,44 @@ Band Runtime does not mutate the imported Nourish object.
 - duplicate-import observation;
 - local refusal/quarantine residue.
 
-### Groove Rooms or another product surface may later own
+### NanaSpork / Garden is the preferred existing product embodiment
 
-- browser inbox/desk UX;
-- paste/import forms;
-- readable cards;
-- participant interaction surfaces;
-- local notification and presentation behavior.
+Current NanaSpork repository documentation already assigns:
 
-The first Band Runtime proof does not add a browser framework.
+- **NanaSpork** — Android field instrument;
+- **Garden** — humane home and navigation projection;
+- **Campfire** — household/community scope;
+- **BananaGram** — portable participation envelope;
+- **Jubilee** — authority, lineage, and durable-memory kernel.
+
+Its shared need lifecycle already supports:
+
+```text
+open need
+  -> pledge
+  -> accept or decline
+  -> report
+  -> confirm
+  -> close
+```
+
+That makes NanaSpork/Garden the strongest existing candidate for the human-facing community desk.
+
+The intended jurisdiction split is therefore:
+
+```text
+Band Runtime
+  = receive / hold / replay / residual semantics
+
+NanaSpork / Garden
+  = human-facing desk / Campfire participation surface
+```
+
+The first Band Runtime proof still does not add a browser framework.
+
+### Groove Rooms
+
+Groove Rooms remains the inhabitable collaboration-room embodiment of Band Runtime for room/media workflows. It is not the preferred community-help desk for this specimen.
 
 ### TranchNode remains owner of
 
@@ -592,9 +621,11 @@ HINGE FLAG != REJECTION
 DOGRAM AGREEMENT != AUTHORIZATION
 ```
 
-## 17. Public-Tool UX Frontier
+## 17. NanaSpork / Garden Embodiment Frontier
 
-A later product surface may render:
+The preferred existing product surface is NanaSpork's Garden.
+
+A later adapter may render:
 
 ```text
 New request — not yet accepted
@@ -608,9 +639,21 @@ Resolved elsewhere
 Waived
 ```
 
-Band Runtime V0 supplies the semantics and projection only.
+Band Runtime V0 supplies the receive/hold/history/residual semantics and projection only.
 
-It does not choose colors, urgency, ordering, social priority, notification policy, or who deserves attention.
+NanaSpork/Garden may present those semantics alongside its existing Campfire need lifecycle, but the adapter must preserve the distinctions in this spec rather than collapsing Band Runtime events into its existing states by label resemblance alone.
+
+In particular:
+
+```text
+DeliveryReported
+must not silently map to
+confirmed fulfillment / closed
+```
+
+Any adapter must explicitly document its mapping from Band Runtime help-case events into NanaSpork/Jubilee/Campfire operations.
+
+Band Runtime does not choose colors, urgency, ordering, social priority, notification policy, or who deserves attention.
 
 ## 18. Nourish Print / Readable Card Frontier
 
@@ -759,7 +802,7 @@ The minimum successful run:
 
 V0 does not include:
 
-- browser UI;
+- browser UI inside Band Runtime;
 - QR codes;
 - accounts;
 - authentication;
@@ -803,10 +846,10 @@ It does not prove:
 Only after this specimen is green:
 
 1. add the dedicated human-readable/print-safe Nourish Help Slip;
-2. add a browser embodiment in the appropriate product repository;
-3. run one trusted-circle real-world handoff;
-4. inspect lifecycle mapping changes with HINGE/Dogram;
-5. consider a Campfire adapter;
+2. design the NanaSpork/Garden adapter against its existing Campfire/Jubilee lifecycle;
+3. add the Help Slip import/holding-desk embodiment there;
+4. run one trusted-circle real-world handoff;
+5. inspect lifecycle mapping changes with HINGE/Dogram;
 6. only after witnessed crossings consider BODY interface declaration.
 
 The order preserves the central law:
