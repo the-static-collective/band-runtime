@@ -1,0 +1,49 @@
+{
+  "schema": "body.surface/v0",
+  "organ": "band-runtime",
+  "owner": "the-static-collective/band-runtime",
+  "publication": {
+    "status": "owner-published",
+    "standard": "static-collective/body-surface/v0",
+    "scope": "interface-declaration"
+  },
+  "provides": [],
+  "needs": [],
+  "interfaces": [],
+  "measure": {
+    "declared": [
+      {
+        "dimension": "role",
+        "value": "shared-session-runtime",
+        "unit": "state"
+      },
+      {
+        "dimension": "authority-mode",
+        "value": "admission-gated",
+        "unit": "state"
+      }
+    ],
+    "observed": []
+  },
+  "receipts": [
+    {
+      "kind": "owner-contract",
+      "coordinate": "README.md"
+    }
+  ],
+  "residual_fog": [
+    "Encounter/admission/refusal/projection/replay are implemented, but this first body surface leaves protocol declarations empty until one versioned handoff is nominated as stable."
+  ],
+  "non_authorities": [
+    "projection != authority",
+    "recognition != history rewrite",
+    "surface != participant admission"
+  ],
+  "evidence": [
+    {
+      "kind": "owner-readme",
+      "coordinate": "README.md"
+    }
+  ],
+  "authority": "none"
+}
