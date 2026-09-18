@@ -1571,3 +1571,6 @@ Do not claim browser, Android, Supabase, Campfire, NanaSpork, network, or real-w
 - No networking/Campfire/TranchNode/ALEX/Dogram/BODY runtime dependency: enforced in Global Constraints and final diff inspection.
 
 No placeholders remain. Public type and function names are consistent across tasks.
+
+
+CI note: the PR workflow runs the scoped help-case TypeScript gate because the repository-wide typecheck currently has a pre-existing MCP SDK/Zod compatibility failure outside this feature boundary.
