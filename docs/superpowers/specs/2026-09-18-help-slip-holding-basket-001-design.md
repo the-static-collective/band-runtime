@@ -284,6 +284,14 @@ HELD CASE != GLOBAL CASE
 
 ## 8. Append-Only Fulfillment Events
 
+The v0 help-case event vocabulary is implemented as a dedicated Band Runtime submodule. It does **not** extend the existing global `BandEvent` union or general semantic projection. This prevents community-help lifecycle semantics from silently entering media/session projection, retrieval, or stigmergic adaptation merely because they share a repository.
+
+```text
+HELP-CASE EVENT
+!=
+GLOBAL BAND EVENT
+```
+
 ### 8.0 Authority limitation
 
 V0 does not authenticate human identity.
@@ -336,6 +344,11 @@ interface HelpCaseEventBase {
   unit?: string;
   note?: string;
 }
+
+interface CommitmentWithdrawn extends HelpCaseEventBase {
+  type: "commitment.withdrawn";
+  commitmentEventId: string;
+}
 ```
 
 The event store is append-only.
@@ -366,11 +379,15 @@ Commitments may affect a separate promised projection but do not reduce confirme
 
 ### 8.3 CommitmentWithdrawn
 
-A previously recorded commitment is withdrawn.
+A previously recorded commitment is withdrawn by explicit reference to its `commitmentEventId`.
+
+V0 withdrawal is whole-commitment withdrawal. Partial commitment reduction is intentionally excluded.
 
 Withdrawal does not erase the commitment event.
 
 It changes later projections.
+
+A withdrawal that references no prior commitment in the same case/requirement is invalid.
 
 ### 8.4 AttemptRecorded
 
