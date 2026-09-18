@@ -1467,13 +1467,25 @@ npm test
 
 Expected: PASS.
 
-- [ ] **Step 4: Run full TypeScript verification**
+- [ ] **Step 4: Run TypeScript verification and preserve the pre-existing MCP baseline**
+
+First run:
 
 ```bash
 npm run typecheck
 ```
 
-Expected: PASS.
+Current repository baseline may fail in `src/mcp/server.ts` with the known MCP SDK/Zod type-instantiation drift. If the only failures are the existing MCP-server errors, do not modify that unrelated subsystem in this PR.
+
+Then run the feature-scoped gate:
+
+```bash
+npx tsc --noEmit --strict --target ES2022 --module commonjs \
+  --moduleResolution node --esModuleInterop --skipLibCheck \
+  src/help-case/*.ts
+```
+
+Expected: PASS for the help-case subsystem. Record the full-repository MCP failure separately in the PR receipt rather than claiming a full typecheck pass.
 
 - [ ] **Step 5: Run diff hygiene**
 
@@ -1526,7 +1538,8 @@ The PR body must state the exact commands actually run and their real results:
 
 ```text
 npm test
-npm run typecheck
+npm run typecheck  # record existing MCP baseline if still present
+npx tsc --noEmit --strict --target ES2022 --module commonjs --moduleResolution node --esModuleInterop --skipLibCheck src/help-case/*.ts
 git diff --check
 ```
 
