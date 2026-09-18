@@ -62,6 +62,18 @@ export interface HelpCaseEventValidationContext {
   priorEvents: readonly HelpCaseEvent[];
 }
 
+const VALID_HELP_CASE_EVENT_TYPES = new Set<HelpCaseEventType>([
+  'offer.recorded',
+  'commitment.recorded',
+  'commitment.withdrawn',
+  'attempt.recorded',
+  'delivery.reported',
+  'receipt.confirmed',
+  'requirement.resolved_elsewhere',
+  'requirement.waived',
+  'case.note_recorded',
+]);
+
 const RECIPIENT_AUTHORITY_EVENTS = new Set<HelpCaseEventType>([
   'receipt.confirmed',
   'requirement.resolved_elsewhere',
@@ -95,6 +107,10 @@ export function validateHelpCaseEvent(
   event: HelpCaseEvent,
   context: HelpCaseEventValidationContext,
 ): void {
+  if (!VALID_HELP_CASE_EVENT_TYPES.has(event.type)) {
+    throw new Error('UNKNOWN_HELP_CASE_EVENT_TYPE');
+  }
+
   if (event.caseId !== context.caseId) {
     throw new Error('HELP_CASE_ID_MISMATCH');
   }
