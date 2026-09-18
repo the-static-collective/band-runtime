@@ -193,19 +193,27 @@ export function admitHelpSlipCarrier(rawText: string): HelpSlipCarrierAdmission 
       return { disposition: 'refused', carrierHash, reason: 'INVALID_REQUIREMENT' };
     }
 
-    if (value.quantity !== undefined && !isPositiveFiniteNumber(value.quantity)) {
+    const quantity = value.quantity;
+    const unit = value.unit;
+    const neededBy = value.neededBy;
+
+    if (quantity !== undefined && !isPositiveFiniteNumber(quantity)) {
       return { disposition: 'refused', carrierHash, reason: 'INVALID_QUANTITY' };
     }
 
-    if (value.quantity !== undefined && !isNonEmptyString(value.unit)) {
+    if (quantity !== undefined && !isNonEmptyString(unit)) {
       return { disposition: 'refused', carrierHash, reason: 'QUANTITY_WITHOUT_UNIT' };
     }
 
-    if (value.quantity === undefined && value.unit !== undefined) {
+    if (quantity === undefined && unit !== undefined) {
       return { disposition: 'refused', carrierHash, reason: 'INVALID_REQUIREMENT' };
     }
 
-    if (value.neededBy !== undefined && !isNonEmptyString(value.neededBy)) {
+    if (unit !== undefined && !isNonEmptyString(unit)) {
+      return { disposition: 'refused', carrierHash, reason: 'INVALID_REQUIREMENT' };
+    }
+
+    if (neededBy !== undefined && !isNonEmptyString(neededBy)) {
       return { disposition: 'refused', carrierHash, reason: 'INVALID_REQUIREMENT' };
     }
 
@@ -213,9 +221,9 @@ export function admitHelpSlipCarrier(rawText: string): HelpSlipCarrierAdmission 
       id: value.id,
       kind: value.kind,
       description: value.description,
-      ...(value.quantity === undefined ? {} : { quantity: value.quantity }),
-      ...(value.unit === undefined ? {} : { unit: value.unit }),
-      ...(value.neededBy === undefined ? {} : { neededBy: value.neededBy }),
+      ...(quantity === undefined ? {} : { quantity }),
+      ...(unit === undefined ? {} : { unit }),
+      ...(neededBy === undefined ? {} : { neededBy }),
     });
   }
 
