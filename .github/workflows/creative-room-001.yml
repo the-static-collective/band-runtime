@@ -1,0 +1,21 @@
+name: ROOM-BAND-001 native synthetic witness
+on:
+  push:
+    branches: ['experiment/creative-room-001']
+  pull_request:
+    paths: ['src/creative-room-bridge.ts','scripts/room-review.ts','test/creative-room-bridge.test.ts','.github/workflows/creative-room-001.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --ignore-scripts --no-package-lock --no-audit --no-fund
+      - name: Typecheck owner-local bridge only (existing MCP/Zod type drift is unrelated)
+        run: npx tsc --noEmit --module commonjs --target es2022 --strict --esModuleInterop --skipLibCheck src/creative-room-bridge.ts scripts/room-review.ts
+      - run: npm test -- --run test/creative-room-bridge.test.ts
