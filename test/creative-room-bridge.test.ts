@@ -1,7 +1,7 @@
 import {describe,it,expect} from 'vitest';
 import {reviewGrooveRoom,type RoomReview} from '../src/creative-room-bridge';
 const h=(v:string)=>'sha256:'+v.repeat(64);
-const safe:RoomReview={schema:'groove-room/cannon-review/v1',origin:'OWNER_LOCAL_SYNTHETIC_EXPORT',sourceParcelSha256:h('a'),returnParcelSha256:h('b'),parentParcelSha256:h('a'),sender:'FICTIONAL_A',recipient:'FICTIONAL_B',rights:'SENDER_ASSERTION_NOT_VERIFIED_LICENSE',semanticEffect:'none',transmitted:false,realParticipants:0,publicationAuthorized:false,decision:'INTERESTING'};
+const safe:RoomReview={schema:'groove-room/cannon-review/v1',origin:'CANNON_LOCAL_SYNTHETIC',sourceParcelSha256:h('a'),returnParcelSha256:h('b'),parentParcelSha256:h('a'),sender:'FICTIONAL_A',recipient:'FICTIONAL_B',rights:'SENDER_ASSERTION_NOT_VERIFIED_LICENSE',semanticEffect:'none',transmitted:false,realParticipants:0,publicationAuthorized:false,decision:'INTERESTING'};
 describe('Groove to Band witness boundary',()=>{
  it('uses original event store with four receipts but no semantic events',()=>{
  const r=reviewGrooveRoom(safe);expect(r).toEqual(reviewGrooveRoom(safe));
