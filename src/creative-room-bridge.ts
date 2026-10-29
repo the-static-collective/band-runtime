@@ -2,7 +2,7 @@ import {BandRuntime} from './runtime';
 import {EventStore} from './store';
 export type RoomReview = {schema:'groove-room/cannon-review/v1';origin:'OWNER_LOCAL_SYNTHETIC_EXPORT';sourceParcelSha256:string;returnParcelSha256:string;parentParcelSha256:string;sender:'FICTIONAL_A';recipient:'FICTIONAL_B';rights:'SENDER_ASSERTION_NOT_VERIFIED_LICENSE';semanticEffect:'none';transmitted:false;realParticipants:0;publicationAuthorized:false;decision:'INTERESTING'|'KEEP'|'WRONG'|'REFUSE'};
 const SHA=/^sha256:[a-f0-9]{64}$/;
-const hold=(v:unknown,why:string):asserts v=>{if(!v)throw Error('ROOM_BRIDGE_REFUSE_'+why)};
+function hold(v:unknown,why:string):asserts v{if(!v)throw Error('ROOM_BRIDGE_REFUSE_'+why)}
 export function reviewGrooveRoom(x:RoomReview){
  hold(x&&typeof x==='object'&&Object.keys(x).sort().join('|')===['schema','origin','sourceParcelSha256','returnParcelSha256','parentParcelSha256','sender','recipient','rights','semanticEffect','transmitted','realParticipants','publicationAuthorized','decision'].sort().join('|'),'FIELDS');
  hold(x.schema==='groove-room/cannon-review/v1'&&x.origin==='OWNER_LOCAL_SYNTHETIC_EXPORT','ORIGIN');
